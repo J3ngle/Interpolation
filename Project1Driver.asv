@@ -1,0 +1,94 @@
+%% FCM Project 1
+%Jonathan Engle
+%Due Feb 6
+%% Define Functions and parameters
+clear;clc;clear all 
+tic
+%lower bound
+global a
+a=-4;
+%upper bound
+global b
+b=4;
+%Number of steps
+global n
+n=51;
+%Step size
+global h
+h=abs(a-b)/n;
+
+%Normally spaced x vector
+global nx
+nx=linspace(a,b,n);
+difx=linspace(a,b,n);
+%Chebychev spaced vector
+global chex %haha like the snack
+chex=[];
+for i=1:n+1 %shifted over
+    chex(i)= cos((2*i+1)*pi/(2*n+2));%(cos((2*i+1)*pi)/(2*n+2));
+end
+chexcheck=chebyshevT(n,nx);%used to check
+for i=1:1/2*n
+    chexcheck(i)= -chexcheck(i);
+end
+lejaOut = Leja(nx);
+%Changing our active x makes it easier for testing
+global activx
+activx=nx; %chex%chexcheck; %chex lejaout %nx
+
+%% Define functions
+%Generic Function
+fun=@(t)(t-2).^9;
+%Runges Counter Example
+run=@(t)(1./(1+t.^2));
+%fplot(run);
+%% Testing different Bases
+
+%% Monomial basis
+[coefficients, inte_vals,interpolated_values,Pcomp,Qcomp]=MonomialBasis(activx, feval(fun,activx), activx);
+feval(fun,activx);
+coefficients;
+for i=1:n
+    poly(i)=coefficients(i)*activx(i)^i;
+end
+poly
+%% Plotting Monomial
+interpolated_values=polyval(flip(coefficients'), activx);
+% Pcomp*Qcomp;
+% coefficients;
+hold on
+%plot(interpolated_values); %Wrong
+plot(poly)
+fplot(fun)
+grid on
+legend("Interpolated approximation","Test function")
+hold off
+
+%% Lagrange Basis
+y_int = lagrange(activx, activx, feval(fun,activx));
+% 
+% hold on
+% plot(activx, y_int);
+% %fplot(fun)
+% grid on
+% legend("Interpolated approximation","Test function")
+% hold off
+%% Newtons basis
+alphas = newton_interpolation(activx, feval(fun,activx));
+%Horners method
+s=alphas;
+    for i = n:1
+        s(i) = s.*(activx-activx(i))+alphas(i);
+    end
+
+ error=norm(feval(fun,activx))-norm(s',inf);
+% feval(fun,activx);
+% %Graphing
+% hold on
+% plot(activx,s);
+% %fplot(fun);
+% grid on
+% legend("Interpolated approximation","Test function")
+% hold off
+
+toc
